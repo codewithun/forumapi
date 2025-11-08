@@ -112,13 +112,14 @@ describe('ThreadRepositoryPostgres', () => {
       const thread = await threadRepositoryPostgres.getThreadById('thread-123');
 
       // Assert
-      expect(thread).toStrictEqual({
+      expect(thread).toEqual({
         id: 'thread-123',
         title: 'sebuah thread',
         body: 'sebuah body thread',
-        date: new Date('2021-08-07T17:19:09.775Z'),
+        date: expect.any(Date),
         username: 'dicoding',
       });
+      expect(thread.date.toISOString()).toBe('2021-08-07T17:19:09.775Z');
     });
   });
 

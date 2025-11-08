@@ -185,13 +185,14 @@ describe('CommentRepositoryPostgres', () => {
 
       // Assert
       expect(comments).toHaveLength(1);
-      expect(comments).toStrictEqual([{
+      expect(comments[0]).toEqual({
         id: 'comment-123',
         username: 'dicoding',
-        date: new Date('2021-08-07T17:19:09.775Z'),
+        date: expect.any(Date),
         content: 'sebuah comment',
         is_delete: false,
-      }]);
+      });
+      expect(comments[0].date.toISOString()).toBe('2021-08-07T17:19:09.775Z');
     });
   });
 

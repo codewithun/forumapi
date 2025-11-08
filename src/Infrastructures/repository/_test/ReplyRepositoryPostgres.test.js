@@ -205,14 +205,15 @@ describe('ReplyRepositoryPostgres', () => {
 
       // Assert
       expect(replies).toHaveLength(1);
-      expect(replies).toStrictEqual([{
+      expect(replies[0]).toEqual({
         id: 'reply-123',
         comment_id: 'comment-123',
         username: 'dicoding',
-        date: new Date('2021-08-07T17:19:09.775Z'),
+        date: expect.any(Date),
         content: 'sebuah balasan',
         is_delete: false,
-      }]);
+      });
+      expect(replies[0].date.toISOString()).toBe('2021-08-07T17:19:09.775Z');
     });
   });
 
