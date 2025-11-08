@@ -94,7 +94,7 @@ jobs:
             echo "✅ Connected to VPS successfully!"
             echo "=============================="
 
-            cd /var/www/forumapi/forum-api-starter-project-V1
+            cd /var/www/forumapi/forumapi
 
             echo "🔁 Pulling latest code from main..."
             git fetch --all
