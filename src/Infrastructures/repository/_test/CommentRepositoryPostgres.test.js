@@ -195,6 +195,33 @@ describe('CommentRepositoryPostgres', () => {
     });
   });
 
+  describe('getCommentById function', () => {
+    it('should throw NotFoundError when comment not found', async () => {
+      // Arrange
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action & Assert
+      await expect(commentRepositoryPostgres.getCommentById('comment-123'))
+        .rejects.toThrowError(NotFoundError);
+    });
+
+    it('should return comment correctly when comment found', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123', username: 'dicoding' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const comment = await commentRepositoryPostgres.getCommentById('comment-123');
+
+      // Assert
+      expect(comment).toStrictEqual({
+        id: 'comment-123',
+      });
+    });
+  });
+
   it('should be instance of CommentRepository domain', () => {
     const commentRepositoryPostgres = new CommentRepositoryPostgres({}, {});
 
