@@ -1,0 +1,51 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGDATABASE: forumapi_test
+          PGUSER: developer
+          PGPASSWORD: supersecretpassword
+          ACCESS_TOKEN_KEY: accesstokenkeytest
+          REFRESH_TOKEN_KEY: refreshtokenkeytest
+          ACCESS_TOKEN_AGE: 3600
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /path/to/your/forum-api
+            git pull origin main
+            npm install --production
+            npm run migrate up
+            pm2 restart forum-api || pm2 start src/app.js --name forum-api
+            sudo systemctl reload nginx
