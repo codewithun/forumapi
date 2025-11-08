@@ -1,4 +1,4 @@
-name: Continuous Deployment
+name: Continuous Deployment (Forum API)
 
 on:
   push:
@@ -10,34 +10,47 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    # 🗄️ Setup PostgreSQL container for testing
     services:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_PASSWORD: supersecretpassword
           POSTGRES_USER: developer
+          POSTGRES_PASSWORD: supersecretpassword
           POSTGRES_DB: forumapi_test
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
+      # ================================
+      # 🧩 Checkout repository
+      # ================================
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # ================================
+      # ⚙️ Setup Node.js
+      # ================================
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
           cache: "npm"
 
+      # ================================
+      # 📦 Install dependencies
+      # ================================
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
+      # ================================
+      # 🧱 Run migrations for testing
+      # ================================
       - name: Run database migrations
         run: npm run migrate:test:ci up
         env:
@@ -47,6 +60,9 @@ jobs:
           PGUSER: developer
           PGPASSWORD: supersecretpassword
 
+      # ================================
+      # 🧪 Run tests
+      # ================================
       - name: Run tests
         run: npm test
         env:
@@ -59,18 +75,41 @@ jobs:
           REFRESH_TOKEN_KEY: refreshtokenkeytest
           ACCESS_TOKEN_AGE: 3600
 
-      - name: Deploy to server
+      # ================================
+      # 🚀 Deploy to VPS (only if tests pass)
+      # ================================
+      - name: 🚀 Deploy to VPS
+        if: success() # pastikan hanya jalan kalau test lulus
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-          debug: true # <== tambahkan ini
+          use_insecure_cipher: true
+          cipher: aes256-cbc
+          debug: true
           script: |
+            echo "=============================="
+            echo "✅ Connected to VPS successfully!"
+            echo "=============================="
+
             cd /var/www/forumapi/forumapi
-            git pull origin main
-            npm install --production
-            npm run migrate up
+
+            echo "🔁 Pulling latest code from main..."
+            git fetch --all
+            git reset --hard origin/main
+
+            echo "📦 Installing production dependencies..."
+            npm ci --omit=dev || npm install --production
+
+            echo "🧩 Running production migrations..."
+            npm run migrate:prod || npm run migrate up
+
+            echo "♻️ Restarting PM2 service..."
             pm2 restart forum-api || pm2 start src/app.js --name forum-api
-            sudo systemctl reload nginx
+
+            echo "🔄 Reloading Nginx configuration..."
+            sudo systemctl reload nginx || sudo service nginx reload
+
+            echo "🎉 DEPLOYMENT COMPLETE SUCCESSFULLY 🎉"
