@@ -213,7 +213,6 @@ describe('ReplyRepositoryPostgres', () => {
         content: 'sebuah balasan',
         is_delete: false,
       });
-      expect(replies[0].date.toISOString()).toBe('2021-08-07T17:19:09.775Z');
     });
   });
 

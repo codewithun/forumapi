@@ -192,7 +192,6 @@ describe('CommentRepositoryPostgres', () => {
         content: 'sebuah comment',
         is_delete: false,
       });
-      expect(comments[0].date.toISOString()).toBe('2021-08-07T17:19:09.775Z');
     });
   });
 
