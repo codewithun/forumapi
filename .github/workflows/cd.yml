@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v3
 
       # ================================
-      # ⚙️ Setup Node.js
+      # ⚙️ Setup Node.js for CI
       # ================================
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -79,7 +79,7 @@ jobs:
       # 🚀 Deploy to VPS (only if tests pass)
       # ================================
       - name: 🚀 Deploy to VPS
-        if: success() # pastikan hanya jalan kalau test lulus
+        if: success()
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
@@ -94,7 +94,22 @@ jobs:
             echo "✅ Connected to VPS successfully!"
             echo "=============================="
 
-            cd /var/www/forumapi/forumapi
+            # 🧠 Load NVM manually
+            export NVM_DIR="/root/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+            # 🛠️ Add Node.js v22.14.0 to PATH (lihat hasil 'nvm list')
+            export PATH=$PATH:/root/.nvm/versions/node/v22.14.0/bin
+
+            echo "📦 Node version check:"
+            node -v || echo "❌ Node not found"
+            echo "📦 NPM version check:"
+            npm -v || echo "❌ NPM not found"
+            echo "📦 PM2 version check:"
+            pm2 -v || echo "❌ PM2 not found"
+
+            cd /var/www/forumapi/forum-api-starter-project-V1
 
             echo "🔁 Pulling latest code from main..."
             git fetch --all
