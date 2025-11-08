@@ -66,6 +66,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
+          debug: true # <== tambahkan ini
           script: |
             cd /var/www/forumapi/forumapi
             git pull origin main
