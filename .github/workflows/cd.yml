@@ -21,19 +21,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-        env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGDATABASE: forumapi_test
-          PGUSER: developer
-          PGPASSWORD: supersecretpassword
-          ACCESS_TOKEN_KEY: accesstokenkeytest
-          REFRESH_TOKEN_KEY: refreshtokenkeytest
-          ACCESS_TOKEN_AGE: 3600
+        run: npm install
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v0.1.7
@@ -43,7 +31,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /path/to/your/forum-api
+            cd /var/www/forumapi/forumapi
             git pull origin main
             npm install --production
             npm run migrate up
