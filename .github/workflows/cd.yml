@@ -10,6 +10,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: supersecretpassword
+          POSTGRES_USER: developer
+          POSTGRES_DB: forumapi_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,7 +36,16 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+
+      - name: Run database migrations
+        run: npm run migrate:test:ci up
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGDATABASE: forumapi_test
+          PGUSER: developer
+          PGPASSWORD: supersecretpassword
 
       - name: Run tests
         run: npm test
@@ -43,7 +67,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /path/to/your/forum-api
+            cd /var/www/forumapi/forumapi
             git pull origin main
             npm install --production
             npm run migrate up
